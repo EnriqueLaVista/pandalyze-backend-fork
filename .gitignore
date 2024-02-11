@@ -1,0 +1,31 @@
+# Directorio del entorno virtual
+venv/
+
+# Archivos de configuración específicos del entorno local
+instance/
+
+# Archivos generados por Python
+*.pyc
+__pycache__/
+
+# Archivos generados por IDEs
+.vscode/
+.idea/
+
+# Archivos de registro
+*.log
+
+# Archivos de compilación y distribución
+*.pyo
+*.pyc
+*.pyd
+*.pyz
+*.pyw
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Directorios de compilación
+build/
+dist/
