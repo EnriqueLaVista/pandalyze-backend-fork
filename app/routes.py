@@ -1,6 +1,7 @@
-import os, json
+import os
 from flask import Blueprint, request, jsonify
 from werkzeug.utils import secure_filename
+import pandas as pd
 
 UPLOAD_FOLDER = 'csv-uploads'
 ALLOWED_EXTENSIONS = {'csv'}
@@ -20,14 +21,12 @@ def run_python_code():
     code = request.json['code']
     
     try:
-        # Ejecuta el código Python proporcionado
         exec_result = {}
-        exec(f"result = {code}", {}, exec_result)
+        exec_globals = {'pd': pd}
+        exec(f"result = {code}", exec_globals, exec_result)
         
-        # Captura el resultado
         result = exec_result.get('result', None)
 
-        # Devuelve el resultado como parte de la respuesta JSON
         if result is not None:
             return jsonify({'result': result}), 200
         else:
