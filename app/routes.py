@@ -1,36 +1,39 @@
-import os
+import os, sys
 from flask import Blueprint, request, jsonify
 from werkzeug.utils import secure_filename
-import pandas as pd
+from io import StringIO, TextIOWrapper
+from .services.csv_service import save_csv_data
 
-UPLOAD_FOLDER = 'csv-uploads'
 ALLOWED_EXTENSIONS = {'csv'}
 
 bp = Blueprint('main', __name__)
-bp.config = {}
 
 @bp.route('/')
 def index():
     return 'Index page'
 
 @bp.route('/run_python_code', methods=['POST'])
-def run_python_code():
+def run_code():
     if 'code' not in request.json:
         return jsonify({'error': 'No se proporcionó ningún código Python'}), 400
     
     code = request.json['code']
     
     try:
-        exec_result = {}
-        exec_globals = {'pd': pd}
-        exec(f"result = {code}", exec_globals, exec_result)
+        # Temporalmente cambiamos la salida estandar a una variable 'output'
+        output = StringIO()
+        sys.stdout = output
         
-        result = exec_result.get('result', None)
-
-        if result is not None:
-            return jsonify({'result': result}), 200
-        else:
-            return jsonify({'info': 'No se encontró ningún resultado'}), 500
+        exec_globals = {}
+        exec(code, exec_globals)
+        
+        # Restaura la salida estándar a la consola
+        sys.stdout = sys.__stdout__
+        
+        # Obtiene la salida capturada
+        output_value = output.getvalue()
+        
+        return jsonify({'output': output_value}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -48,16 +51,13 @@ def upload_csv():
         return jsonify({'error': 'No selected file'}), 400
     
     if file and allowed_file(file.filename):
-        # Guarda el archivo en el servidor
         filename = secure_filename(file.filename)
-        file.save(os.path.join(UPLOAD_FOLDER, filename))
         
+        # Lee y almacena la información del CSV en la base de datos
+        csv_content = TextIOWrapper(file, encoding='utf-8-sig').read()
+        save_csv_data(filename, csv_content)
+
         # Devuelve la ruta del archivo guardado
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
-        return jsonify({'file_path': file_path}), 201
+        return jsonify({'file_path': filename}), 201
     
     return jsonify({'error': 'File not allowed'}), 400
-
-
-
-    

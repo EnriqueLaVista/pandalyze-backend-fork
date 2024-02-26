@@ -29,3 +29,6 @@ __pycache__/
 # Directorios de compilación
 build/
 dist/
+
+# Mios
+app/config.py
