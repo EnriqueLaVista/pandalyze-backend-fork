@@ -15,3 +15,8 @@ class CSVData(db.Model):
 
     def __repr__(self):
         return '<CSV %r>' % self.filename
+    
+    @classmethod
+    def get_csv_by_id(cls, csv_id):
+        csv = cls.query.get(csv_id)
+        return csv
