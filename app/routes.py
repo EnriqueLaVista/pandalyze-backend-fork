@@ -2,7 +2,7 @@ import os, sys
 from flask import Blueprint, request, jsonify
 from werkzeug.utils import secure_filename
 from io import StringIO, TextIOWrapper
-from .services.csv_service import save_csv_data
+from .services.csv_service import save_csv_data, read_csv
 import pandas as pd
 
 
@@ -25,8 +25,7 @@ def run_code():
         # Temporalmente cambiamos la salida estandar a una variable 'output'
         output = StringIO()
         sys.stdout = output
-
-        exec_globals = {}
+        exec_globals = {'read_csv': read_csv}
         exec(code, exec_globals)
         
         # Restaura la salida estándar a la consola
@@ -37,7 +36,10 @@ def run_code():
 
         return jsonify({'output': output_value}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        # Restaura la salida estándar a la consola
+        sys.stdout = sys.__stdout__
+        print({'Error': str(e)})
+        return jsonify({'Error': str(e)}), 500
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
