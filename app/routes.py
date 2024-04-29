@@ -3,7 +3,8 @@ from flask import Blueprint, request, jsonify
 from werkzeug.utils import secure_filename
 from io import StringIO, TextIOWrapper
 from .services.csv_service import save_csv_data, read_csv
-import pandas as pd
+import pandas as pandas
+import plotly.express as plotly
 
 
 ALLOWED_EXTENSIONS = {'csv'}
@@ -19,13 +20,13 @@ def run_code():
     if 'code' not in request.json:
         return jsonify({'error': 'No se proporcionó ningún código Python'}), 400
     
-    code = request.json['code']
+    code = request.json['code']    
 
     try:        
         # Temporalmente cambiamos la salida estandar a una variable 'output'
         output = StringIO()
         sys.stdout = output
-        exec_globals = {'read_csv': read_csv}
+        exec_globals = {'read_csv': read_csv, 'plotly': plotly}
         exec(code, exec_globals)
         
         # Restaura la salida estándar a la consola
