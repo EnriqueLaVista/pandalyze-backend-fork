@@ -60,9 +60,9 @@ def upload_csv():
         
         # Lee y almacena la información del CSV en la base de datos
         csv_content = TextIOWrapper(file, encoding='utf-8-sig').read()
-        csv_id =  save_csv_data(filename, csv_content)
+        csv_id, columns_names = save_csv_data(filename, csv_content)
 
         # Devuelve la ruta del archivo guardado
-        return jsonify({'fileName': filename, 'csvId': csv_id}), 201
+        return jsonify({'fileName': filename, 'csvId': csv_id, 'columnsNames': columns_names}), 201
     
     return jsonify({'error': 'File not allowed'}), 400
