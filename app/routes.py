@@ -1,4 +1,4 @@
-import os, sys
+import sys
 from flask import Blueprint, request, jsonify
 from werkzeug.utils import secure_filename
 from io import StringIO, TextIOWrapper
@@ -6,6 +6,7 @@ from .services.csv_service import save_csv_data, read_csv
 import pandas as pandas
 import plotly.express as plotly
 import plotly.io as pio
+import traceback
 
 
 ALLOWED_EXTENSIONS = {'csv'}
@@ -16,7 +17,7 @@ bp = Blueprint('main', __name__)
 def index():
     return 'Index page'
 
-@bp.route('/run_python_code', methods=['POST'])
+@bp.route('/runPythonCode', methods=['POST'])
 def run_code():
     if 'code' not in request.json:
         return jsonify({'error': 'No se proporcionó ningún código Python'}), 400
@@ -42,8 +43,12 @@ def run_code():
     except Exception as e:
         # Restaura la salida estándar a la consola
         sys.stdout = sys.__stdout__
-        print({'Error': str(e)})
-        return jsonify({'pythonError': str(e)}), 500
+    
+        # Formateamos la excepcion para que sea mas legible
+        error_info = traceback.format_exception_only(type(e), e)
+        error_message = ''.join(error_info)
+        print({'Error': error_message})
+        return jsonify({'pythonError': error_message}), 500
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
