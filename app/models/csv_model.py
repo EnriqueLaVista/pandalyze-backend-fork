@@ -1,4 +1,4 @@
-from .. import db
+from app.extensions import db
 from sqlalchemy import Column, Integer, String, Text
 
 # Define el modelo para la tabla donde se almacenará el CSV
@@ -18,5 +18,8 @@ class CSVData(db.Model):
     
     @classmethod
     def get_csv_by_id(cls, csv_id):
-        csv = cls.query.get(csv_id)
-        return csv
+        return cls.query.get(csv_id)
+
+    @classmethod
+    def get_csv_by_filename(cls, filename):
+        return cls.query.filter_by(filename=filename).first()

@@ -1,10 +1,8 @@
 from flask import Flask
 from .routes import bp as main_bp  # Importa el Blueprint desde routes.py
-from flask_sqlalchemy import SQLAlchemy
 from .config import Config
+from .extensions import db
 
-# Crea una instancia de SQLAlchemy
-db = SQLAlchemy()
 
 def create_app():
     # Creamos una instancia de la aplicación Flask
