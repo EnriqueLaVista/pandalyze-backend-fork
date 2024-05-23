@@ -6,7 +6,7 @@ from .services.csv_service import save_csv_data, read_csv, get_csv_by_filename
 import pandas as pandas
 import plotly.express as plotly
 import plotly.io as pio
-import traceback
+from .services.error_formatter_service import ExceptionFormatter
 
 
 ALLOWED_EXTENSIONS = {'csv'}
@@ -45,10 +45,9 @@ def run_code():
         sys.stdout = sys.__stdout__
     
         # Formateamos la excepcion para que sea mas legible
-        error_info = traceback.format_exception_only(type(e), e)
-        error_message = ''.join(error_info)
-        print({'Error': error_message})
-        return jsonify({'pythonError': error_message}), 500
+        personalized_error, original_error = ExceptionFormatter.get_error_messages(e)
+        print({'Error personalizado': personalized_error, 'Error original': original_error})
+        return jsonify({'personalized_error': personalized_error, 'original_error': original_error}), 500
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
