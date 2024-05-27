@@ -46,7 +46,7 @@ def run_code():
     
         # Formateamos la excepcion para que sea mas legible
         personalized_error, original_error = ExceptionFormatter.get_error_messages(e)
-        print({'Error personalizado': personalized_error, 'Error original': original_error})
+        print({'Excepcion al correr codigo': e})
         return jsonify({'personalized_error': personalized_error, 'original_error': original_error}), 500
 
 def allowed_file(filename):
