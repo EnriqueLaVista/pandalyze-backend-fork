@@ -13,15 +13,12 @@ ALLOWED_EXTENSIONS = {'csv'}
 
 bp = Blueprint('main', __name__)
 
-@bp.route('/')
+@bp.route('/healthCheck')
 def index():
-    return 'Index page'
+    return 'OK!'
 
 @bp.route('/runPythonCode', methods=['POST'])
 def run_code():
-    if 'code' not in request.json:
-        return jsonify({'error': 'No se proporcionó ningún código Python'}), 400
-    
     code = request.json['code']    
     
     try:
