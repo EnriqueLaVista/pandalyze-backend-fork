@@ -32,3 +32,5 @@ dist/
 
 # Mios
 app/config.py
+
+.env
