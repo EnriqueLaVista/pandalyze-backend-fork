@@ -22,6 +22,12 @@ def run_code():
     code = request.json['code']    
     
     try:
+        # Configuraciones generales para el print del dataframe:
+        pandas.options.display.max_columns = None
+        pandas.set_option('display.max_colwidth', 20)  # Tamaño máximo de cada celda: 20 caracteres
+        pandas.set_option('display.colheader_justify', 'center')  # Alinear encabezados de columna al centro
+        pandas.set_option('display.width', 9999) # Tamaño total del dataframe (un valor alto evita las elipsis y muestra todas las columnas)
+
         json_plots = []
         
         # Temporalmente cambiamos la salida estandar a una variable 'output'
