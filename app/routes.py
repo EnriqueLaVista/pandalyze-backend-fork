@@ -2,7 +2,7 @@ import sys
 from flask import Blueprint, request, jsonify
 from werkzeug.utils import secure_filename
 from io import StringIO, TextIOWrapper
-from .services.csv_service import save_csv_data, read_csv, get_csv_by_filename
+from .services.csv_service import save_csv_data, read_csv, get_csv_by_content
 import pandas as pandas
 import plotly.express as plotly
 import plotly.io as pio
@@ -68,12 +68,12 @@ def upload_csv():
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         
-        csv_id, columns_names = get_csv_by_filename(filename)
+        csv_content = TextIOWrapper(file, encoding='utf-8-sig').read()
+        csv_id, columns_names = get_csv_by_content(csv_content)
         
-        # Chequea que ya exita en la BD por el filename
+        # Si no existe el csv en la BD, lo guardamos.
+        # El criterio para definir si "existe" el csv es el campo "data" que representa el cuerpo del csv
         if not csv_id:
-            # Lee y almacena la información del CSV en la base de datos
-            csv_content = TextIOWrapper(file, encoding='utf-8-sig').read()
             csv_id, columns_names = save_csv_data(filename, csv_content)
 
         return jsonify({'fileName': filename, 'csvId': csv_id, 'columnsNames': columns_names}), 201

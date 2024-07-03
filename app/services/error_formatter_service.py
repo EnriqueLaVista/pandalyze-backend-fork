@@ -5,22 +5,6 @@ import plotly.io as pio
 import re
 
 class ExceptionFormatter:
-    errorMessagesMap = {
-        SyntaxError: "Ocurrió un error de sintaxis. {}",
-        NameError: "Se ha utilizado una variable no definida. {}",
-        AttributeError: "Se intentó acceder a un atributo que no existe en un objeto. {}",
-        TypeError: "Se ha producido un error de tipo. {}",
-        ValueError: "Se ha producido un error de valor. {}",
-        KeyError: "Se ha intentado acceder a una clave que no existe en un diccionario. {}",
-        IndexError: "Se ha intentado acceder a un índice fuera del rango en una lista o tupla. {}",
-        FileNotFoundError: "El archivo especificado no se ha encontrado. {}.",
-        pandas.errors.ParserError: "Ocurrió un error al analizar el archivo CSV. {}.",
-        pandas.errors.DtypeWarning: "Ocurrió un problema de incompatibilidad en los tipos de datos de alguna columna en el archivo CSV. {}.",
-        pandas.errors.UnsupportedFunctionCall: "Ocurrió un error al llamar a una función no soportada en DataFrame de pandas. {}.",
-        pandas.errors.EmptyDataError: "El DataFrame de pandas está vacío. {}.",
-        #falta plotly y pio
-    }
-    
     @staticmethod
     def get_error_messages(exception):
         exception_message = ""
@@ -46,16 +30,10 @@ class ExceptionFormatter:
             exception_message =  "Se ha intentado acceder a un índice fuera del rango en una lista o tupla. {}"
         except FileNotFoundError:
             exception_message =  "El archivo especificado no se ha encontrado. {}"
-        except pandas.errors.ParserError:
-            exception_message =  "Ocurrió un error al analizar el archivo CSV. {}"
         except pandas.errors.DtypeWarning:
             exception_message =  "Ocurrió un problema de incompatibilidad en los tipos de datos de alguna columna en el archivo CSV. {}"
-        except pandas.errors.UnsupportedFunctionCall:
-            exception_message =  "Ocurrió un error al llamar a una función no soportada en DataFrame de pandas. {}"
-        except pandas.errors.EmptyDataError:
-            exception_message =  "El DataFrame de pandas está vacío. {}"
         except Exception:
-            exception_message =  "Ocurrió un error cerca de la ejecución del código {}."
+            exception_message =  "Ocurrió un error en la ejecución del código. {}"
 
         error_info = traceback.format_exception_only(type(exception), exception)
         original_error = ''.join(error_info)

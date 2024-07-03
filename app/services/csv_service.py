@@ -3,8 +3,8 @@ from io import StringIO
 from app.models.csv_model import CSVData
 from app.extensions import db
 
+# Almacena la información del CSV en la base de datos
 def save_csv_data(filename, data):
-    # Almacena la información del CSV en la base de datos
     csv_data = CSVData(filename=filename, data=data)
     db.session.add(csv_data)
     db.session.commit()
@@ -17,8 +17,8 @@ def read_csv(csv_id):
     
     return df
 
-def get_csv_by_filename(filename):
-    csv = CSVData.get_csv_by_filename(filename)
+def get_csv_by_content(csv_content):
+    csv = CSVData.query.filter_by(data=csv_content).first()
     if csv:
         return csv.id, get_csv_columns_names(csv.data)
     else:
