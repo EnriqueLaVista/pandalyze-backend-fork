@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify
 from app.models.csv_model import CSVData
+from app import db
 
 bp = Blueprint('bd_check', __name__)
 
@@ -9,4 +10,6 @@ def bd_check():
         count = CSVData.query.count()
         return jsonify({'message': 'OK!', 'count': count}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        db.create_all()
+        CSVData.query.all()
+        return jsonify({'message': e}), 200
