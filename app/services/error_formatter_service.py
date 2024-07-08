@@ -1,7 +1,5 @@
 import traceback
 import pandas as pandas
-import plotly.express as plotly
-import plotly.io as pio
 import re
 
 class ExceptionFormatter:
@@ -25,7 +23,7 @@ class ExceptionFormatter:
             else:
                 exception_message =  "Se ha producido un error de valor, verifica que las entradas de los bloques sean correctas. {}"
         except KeyError:
-            exception_message =  "Se ha intentado acceder a una clave que no existe en un diccionario. {}"
+            exception_message =  "Se ha intentado acceder a un atributo que no existe. {}"
         except IndexError:
             exception_message =  "Se ha intentado acceder a un índice fuera del rango en una lista o tupla. {}"
         except FileNotFoundError:
@@ -43,6 +41,7 @@ class ExceptionFormatter:
       
         return personalized_error, original_error
 
+# Intenta encontrar la linea donde ocurrio el error
 def get_error_line_number_text(error):
     match = re.search(r'line (\d+)', error)
     if match:
