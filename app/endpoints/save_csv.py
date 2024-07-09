@@ -29,7 +29,7 @@ def upload_csv():
         file.seek(0)
         
         if file_size > MAX_CONTENT_LENGTH_IN_BYTES:
-            return jsonify({'error': 'El archivo CSV supera los 10 megabytes'}), 400
+            return jsonify({'error': 'El archivo CSV no puede superar los 10 megabytes'}), 400
         
         filename = secure_filename(file.filename)
         
