@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify
 from app.models.csv_model import CSVData
+from flask_cors import cross_origin
 
 bp = Blueprint('bd_check', __name__)
 
 @bp.route('/bdCheck')
+@cross_origin()
 def bd_check():
     try:
         count = CSVData.query.count()

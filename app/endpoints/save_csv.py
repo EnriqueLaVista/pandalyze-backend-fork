@@ -2,6 +2,7 @@ import os
 from flask import Blueprint, request, jsonify
 from werkzeug.utils import secure_filename
 from io import TextIOWrapper
+from flask_cors import cross_origin
 from ..services.csv_service import save_csv_data, get_csv_by_content
 
 bp = Blueprint('save_csv', __name__)
@@ -13,6 +14,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @bp.route('/uploadCsv', methods=['POST'])
+@cross_origin()
 def upload_csv():
     file = request.files['csv']
 

@@ -6,6 +6,7 @@ from ..services.csv_service import read_csv
 import pandas as pandas
 import plotly.express as plotly
 import plotly.io as pio
+from flask_cors import cross_origin
 from ..services.error_formatter_service import ExceptionFormatter
 
 bp = Blueprint('run_python_code', __name__)
@@ -44,6 +45,7 @@ def execute_code(code, globals_dict, timeout=15):
         raise exception_list[0]
     
 @bp.route('/runPythonCode', methods=['POST'])
+@cross_origin()
 def run_code():
     code = request.json['code']
 
