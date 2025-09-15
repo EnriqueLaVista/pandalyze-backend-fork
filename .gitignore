@@ -32,3 +32,5 @@ dist/
 
 # Mios
 .env
+.venv/
+.venv/*

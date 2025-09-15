@@ -1,21 +1,19 @@
-from flask import Blueprint, request
-import sys, threading, re
+import traceback
 from flask import Blueprint, request, jsonify
-from io import StringIO
-from ..services.csv_service import read_csv
-import pandas as pandas
+from flask_cors import cross_origin
+import sys, threading, re, pandas, io
 import plotly.express as plotly
 import plotly.io as pio
-from flask_cors import cross_origin
+import folium  
+from ..services.csv_service import read_csv
 from ..services.error_formatter_service import ExceptionFormatter
+from ..endpoints.map_visualization import generate_map
 
 bp = Blueprint('run_python_code', __name__)
 
-# Expresiones regulares para buscar estructuras de control y sentencias de import
 control_structures_regex = re.compile(r'\b(if|else|elif|for|while|try|except|finally)\b')
 import_statement_regex = re.compile(r'\bimport\b')
 
-# Verifica que el codigo sea relativamente esguro. TODO: mejorar esto porque es un parche
 def is_safe_code(code):
     if control_structures_regex.search(code):
         return False
@@ -23,61 +21,71 @@ def is_safe_code(code):
         return False
     return True
 
-def execute_code(code, globals_dict, timeout=15):
-    exception_list = []
+def execute_code(code, globals_dict, exception_list, timeout=15):
     def exec_wrapper(code, globals_dict):
         from run import app
         try:
             with app.app_context():
-                exec(code, globals_dict)
+                result = eval(code, globals_dict)
+                exception_list.append(result)
         except Exception as e:
             exception_list.append(e)
 
     exec_thread = threading.Thread(target=exec_wrapper, args=(code, globals_dict))
     exec_thread.start()
-    exec_thread.join(timeout)
+    exec_thread.join(timeout=timeout)
 
     if exec_thread.is_alive():
-        raise TimeoutError("Timeout de ejecución excedido (más de {} segundos)".format(timeout))
+        exception_list.append(TimeoutError("La ejecución del código superó el tiempo límite"))
 
-    if exception_list:
-        # Si hay alguna excepción capturada en exec_wrapper, lanzarla nuevamente
-        raise exception_list[0]
-    
+
 @bp.route('/runPythonCode', methods=['POST'])
 @cross_origin()
 def run_code():
     code = request.json['code']
-
     try:
-        if not is_safe_code(code):
-            raise ValueError("El código contiene sentencias no permitidas")
+        # (la configuración de pandas)
+        exec_globals = {
+            'read_csv': read_csv,
+            'plotly': plotly,
+            'pio': pio,
+            '_jsonPlots_': [],
+            'generate_map': generate_map,
+        }
+        
+        exception_or_result_list = []
+        execute_code(code, exec_globals, exception_or_result_list)
+        
+        # (la salida estándar)
+        if not exception_or_result_list:
+             return jsonify({'error': "El código no produjo ningún resultado o superó el tiempo límite."}), 500
 
-        # Configuración de pandas para que se imprima mejor
-        pandas.options.display.max_columns = None
-        pandas.set_option('display.max_colwidth', 20)
-        pandas.set_option('display.colheader_justify', 'center')
-        pandas.set_option('display.width', 9999)
+        result_object = exception_or_result_list[0]
 
-        json_plots = []
-        output = StringIO()
-        sys.stdout = output
-
-        # Ejecución del código con chequeos y timeout
-        exec_globals = {'read_csv': read_csv, 'plotly': plotly, 'pio': pio, '_jsonPlots_': json_plots}
-        execute_code(code, exec_globals)
-
-        # Restaurar salida estándar
-        sys.stdout = sys.__stdout__
-        output_value = output.getvalue()
-
-        return jsonify({'output': output_value, 'plots': json_plots}), 200
+        if isinstance(result_object, Exception):
+            raise result_object
+            
+        if isinstance(result_object, folium.Map):
+            map_html = result_object._repr_html_()
+            return jsonify({'output': map_html, 'type': 'map'})
+        elif hasattr(result_object, 'to_json'):
+             plot_json = pio.to_json(result_object)
+             return jsonify({'output': '', 'plots': [plot_json]}), 200
+        else:
+             return jsonify({'output': str(result_object), 'plots': []}), 200
 
     except Exception as e:
-        # Restaura la salida estándar
-        sys.stdout = sys.__stdout__
-    
-        # Formateamos la excepcion para que sea legible para usuarios no experimentados
-        personalized_error, original_error = ExceptionFormatter.get_error_messages(e)
-        print({'Excepcion al correr codigo': e})
-        return jsonify({'personalized_error': personalized_error, 'original_error': original_error}), 500
+        print("--- ERROR CAPTURADO EN EL ENDPOINT ---")
+        print(traceback.format_exc())
+        print("------------------------------------")
+        
+        try:
+            formatter = ExceptionFormatter(e)
+            personalized_exception = formatter.get_personalized_exception()
+        except Exception as formatter_error:
+            print(f"¡El formateador de excepciones falló!: {formatter_error}")
+            personalized_exception = f"Error de ejecución: {str(e)}"
+        
+        return jsonify({'error': personalized_exception}), 500
+        
+
