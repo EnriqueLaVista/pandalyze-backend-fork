@@ -24,17 +24,17 @@ def generate_dynamic_palette(dataframe, category_col):
         
     return palette
 
-def generate_map(dataframe, lat_col, long_col, title_col):
+def generate_map(dataframe, lat_col, long_col, category_col):
     """
-    Crea un mapa Folium con colores dinámicos basados en la columna del título.
+    Crea un mapa Folium con colores dinámicos basados en la columna de categoría.
     """
-    required_cols = [lat_col, long_col, title_col]
+    required_cols = [lat_col, long_col, category_col]
     for col in required_cols:
         if col not in dataframe.columns:
             columnas_disponibles = ", ".join(dataframe.columns)
             raise KeyError(f"La columna '{col}' no se encuentra en el DataFrame. Las columnas disponibles son: {columnas_disponibles}")
 
-    palette = generate_dynamic_palette(dataframe, title_col)
+    palette = generate_dynamic_palette(dataframe, category_col)
 
     tiles = "https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png"
     attr = (
@@ -52,7 +52,7 @@ def generate_map(dataframe, lat_col, long_col, title_col):
 
     for _, row in dataframe.iterrows():
         try:
-            category_value = row[title_col]
+            category_value = row[category_col]
             marker_style = palette.get(category_value, {'color': 'gray', 'icon': 'question-sign'})
 
             folium.Marker(
