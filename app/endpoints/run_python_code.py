@@ -28,12 +28,28 @@ def execute_code(code, globals_dict, result_list, timeout=15):
         try:
             with app.app_context():
                 parsed_code = ast.parse(code.strip())
+                body = parsed_code.body
 
-                if len(parsed_code.body) == 1 and isinstance(parsed_code.body[0], ast.Expr):
-                    result = eval(code, globals_dict)
-                    result_list.append(result)
-                else:
-                    exec(code, globals_dict)
+                # Obtener la ultima expresion a ejecutar, si hay, y quitarla
+                # para ejecutarla luego.
+                # TODO: optimizar. empezar desde el final, 
+                # las otras expresiones no importan
+                exprs = [node for node in body if isinstance(node, ast.Expr)]
+                last_expr = body.pop(body.index(exprs[-1])) if exprs else None
+
+                # Ejecutar todo el codigo, menos la ultima expresion
+                if body: exec(
+                    compile(ast.Module(body, type_ignores=[]), "<user-code>", "exec"), 
+                    globals_dict)
+
+                # Evaluar la última expresión, si hay
+                # Contra: solo se va a mostrar solo este resultado y no lo anterior.
+                # TODO: iterar las expresiones para mostrar todo en pantalla?
+                if last_expr:
+                    result_list.append(eval(
+                        compile(ast.Expression(last_expr.value), "<user-code>", "eval"), 
+                        globals_dict))
+
         except Exception as e:
             result_list.append(e)
 
@@ -43,7 +59,6 @@ def execute_code(code, globals_dict, result_list, timeout=15):
 
     if thread.is_alive():
         result_list.append(TimeoutError("La ejecución del código superó el tiempo límite."))
-
 
 @bp.route('/runPythonCode', methods=['POST'])
 @cross_origin()
